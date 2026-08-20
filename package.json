@@ -1,0 +1,12 @@
+{
+  "name": "ai-resume-portfolio-builder",
+  "version": "1.0.0",
+  "description": "Full-stack AI Resume & Portfolio Builder — college project",
+  "scripts": {
+    "install:all": "npm install --prefix server && npm install --prefix client",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "start:server": "npm start --prefix server"
+  },
+  "private": true
+}

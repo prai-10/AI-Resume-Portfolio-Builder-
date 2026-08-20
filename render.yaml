@@ -1,0 +1,27 @@
+# Render deployment configuration
+# Docs: https://render.com/docs/render-yaml-ref
+
+services:
+  - type: web
+    name: ai-resume-builder-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000          # Render assigns this automatically; keep as fallback
+      - key: AI_API_KEY
+        sync: false           # Set this manually in Render dashboard (never commit)
+      - key: AI_MODEL
+        value: gpt-3.5-turbo
+      - key: AI_BASE_URL
+        value: https://api.openai.com/v1
+      - key: CLIENT_URL
+        sync: false           # Set to your Vercel frontend URL after deploying
+    disk:
+      name: sqlite-data
+      mountPath: /opt/render/project/src/server/data
+      sizeGB: 1               # 1 GB persistent disk — keeps SQLite data across deploys

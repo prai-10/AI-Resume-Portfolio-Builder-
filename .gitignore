@@ -1,0 +1,26 @@
+# --- Secrets (NEVER commit) ---
+.env
+.env.local
+.env.*.local
+
+# --- Dependencies ---
+node_modules/
+**/node_modules/
+
+# --- SQLite database (user data, not for version control) ---
+server/data/
+*.db
+*.db-shm
+*.db-wal
+
+# --- Frontend build output ---
+client/dist/
+
+# --- OS / editor artifacts ---
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# --- Vite cache ---
+client/.vite/

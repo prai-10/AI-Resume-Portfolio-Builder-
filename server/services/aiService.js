@@ -7,7 +7,11 @@ const fetch = require('node-fetch');
 // Read once at startup — env vars are stable for the lifetime of the process.
 const AI_API_KEY  = (process.env.AI_API_KEY  || '').trim();
 const AI_MODEL    = (process.env.AI_MODEL    || 'gpt-3.5-turbo').trim();
-const AI_BASE_URL = (process.env.AI_BASE_URL || 'https://api.openai.com/v1').trim();
+let cleanBaseUrl = (process.env.AI_BASE_URL || 'https://api.openai.com/v1').trim();
+if (cleanBaseUrl.endsWith('/')) {
+  cleanBaseUrl = cleanBaseUrl.slice(0, -1);
+}
+const AI_BASE_URL = cleanBaseUrl;
 
 if (!AI_API_KEY) {
   console.warn('⚠️ AI Service: Warning - AI_API_KEY is not set. AI requests will fail.');

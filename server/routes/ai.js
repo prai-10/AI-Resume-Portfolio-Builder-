@@ -12,16 +12,26 @@ const linksCtrl = require('../controllers/linksController');
 const docsCtrl = require('../controllers/generatedDocumentsController');
 
 // Helper: load all profile data from DB
-function loadFullProfile() {
+async function loadFullProfile() {
+  const [profile, education, skills, projects, experience, certifications, achievements, links] = await Promise.all([
+    profileCtrl.getProfile(),
+    educationCtrl.getAll(),
+    skillsCtrl.getAll(),
+    projectsCtrl.getAll(),
+    experienceCtrl.getAll(),
+    certificationsCtrl.getAll(),
+    achievementsCtrl.getAll(),
+    linksCtrl.getAll()
+  ]);
   return {
-    profile: profileCtrl.getProfile(),
-    education: educationCtrl.getAll(),
-    skills: skillsCtrl.getAll(),
-    projects: projectsCtrl.getAll(),
-    experience: experienceCtrl.getAll(),
-    certifications: certificationsCtrl.getAll(),
-    achievements: achievementsCtrl.getAll(),
-    links: linksCtrl.getAll()
+    profile,
+    education,
+    skills,
+    projects,
+    experience,
+    certifications,
+    achievements,
+    links
   };
 }
 
@@ -42,11 +52,11 @@ router.post('/generate-resume', async (req, res, next) => {
     const { targetRole, targetIndustry, jobDescription, template } = req.body;
     if (!targetRole) return res.status(400).json({ error: 'Target role is required' });
 
-    const profileData = loadFullProfile();
+    const profileData = await loadFullProfile();
     const content = await generateResume(profileData, targetRole, targetIndustry, jobDescription);
 
     // Save to DB
-    const doc = docsCtrl.create({
+    const doc = await docsCtrl.create({
       type: 'resume',
       title: `Resume — ${targetRole}`,
       target_role: targetRole,
@@ -75,10 +85,10 @@ router.post('/generate-cover-letter', async (req, res, next) => {
       return res.status(400).json({ error: 'Target company and job title are required' });
     }
 
-    const profileData = loadFullProfile();
+    const profileData = await loadFullProfile();
     const content = await generateCoverLetter(profileData, targetCompany, jobTitle, jobDescription);
 
-    const doc = docsCtrl.create({
+    const doc = await docsCtrl.create({
       type: 'cover_letter',
       title: `Cover Letter — ${jobTitle} at ${targetCompany}`,
       target_role: jobTitle,
@@ -99,9 +109,9 @@ router.post('/generate-cover-letter', async (req, res, next) => {
 });
 
 // GET /api/ai/portfolio-data
-router.get('/portfolio-data', (req, res, next) => {
+router.get('/portfolio-data', async (req, res, next) => {
   try {
-    res.json(loadFullProfile());
+    res.json(await loadFullProfile());
   } catch (e) {
     next(e);
   }

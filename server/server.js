@@ -69,16 +69,19 @@ app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.method} ${req.url} not found` });
 });
 
-// Initialize database then start server
-initializeDatabase().then(() => {
-  app.listen(PORT, () => {
-    console.log(`\n🚀 AI Resume Builder Server running on http://localhost:${PORT}`);
-    console.log(`📊 API Health: http://localhost:${PORT}/api/health`);
-    console.log(`🤖 AI Mode: ${process.env.AI_API_KEY ? 'Live AI' : 'Demo Mode'}\n`);
-  });
-}).catch(err => {
-  console.error('Failed to initialize database:', err);
-  process.exit(1);
-});
-
+// Export app for serverless deployment
 module.exports = app;
+
+// Initialize database then start server (only if not running on Vercel)
+if (!process.env.VERCEL) {
+  initializeDatabase().then(() => {
+    app.listen(PORT, () => {
+      console.log(`\n🚀 AI Resume Builder Server running on http://localhost:${PORT}`);
+      console.log(`📊 API Health: http://localhost:${PORT}/api/health`);
+      console.log(`🤖 AI Mode: ${process.env.AI_API_KEY ? 'Live AI' : 'Demo Mode'}\n`);
+    });
+  }).catch(err => {
+    console.error('Failed to initialize database:', err);
+    process.exit(1);
+  });
+}

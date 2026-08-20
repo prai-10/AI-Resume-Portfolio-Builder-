@@ -1,52 +1,53 @@
 /**
- * Database initialization using sql.js (pure WebAssembly SQLite — no native compilation needed).
- * The database is loaded from disk on startup and saved after every write operation.
+ * Database initialization for PostgreSQL (Supabase).
+ * Provides a compatibility layer for SQLite queries.
  */
-const path = require('path');
-const fs = require('fs');
+const { Pool } = require('pg');
 
-const DB_PATH = path.join(__dirname, '..', 'data', 'resume_builder.db');
-const DATA_DIR = path.join(__dirname, '..', 'data');
+let pool = null;
+let initPromise = null;
 
-let db = null;
-let SQL = null;
-
-function saveDb() {
-  const data = db.export();
-  const buffer = Buffer.from(data);
-  fs.writeFileSync(DB_PATH, buffer);
-}
-
-function getDb() {
-  if (!db) throw new Error('Database not initialized. Call initializeDatabase() first.');
-  return db;
+function convertSqliteToPostgres(sql, params = []) {
+  let pgSql = sql;
+  let paramCount = 1;
+  
+  // Replace SQLite "?" placeholders with PostgreSQL "$1, $2, ..."
+  pgSql = pgSql.replace(/\?/g, () => `$${paramCount++}`);
+  
+  // Replace SQLite datetime('now') with PostgreSQL CURRENT_TIMESTAMP
+  pgSql = pgSql.replace(/datetime\('now'\)/gi, 'CURRENT_TIMESTAMP');
+  
+  // Automatically append " RETURNING id" to INSERT statements to fetch inserted ID
+  if (/^\s*INSERT\s+INTO/gi.test(pgSql) && !/RETURNING/gi.test(pgSql)) {
+    pgSql += ' RETURNING id';
+  }
+  
+  return { pgSql, pgParams: params };
 }
 
 async function initializeDatabase() {
-  // Ensure data directory exists
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is missing. Please set it in your .env file or Vercel dashboard.');
   }
 
-  // Load sql.js
-  const initSqlJs = require('sql.js');
-  SQL = await initSqlJs();
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
 
-  // Load existing database or create new one
-  if (fs.existsSync(DB_PATH)) {
-    const fileBuffer = fs.readFileSync(DB_PATH);
-    db = new SQL.Database(fileBuffer);
-    console.log('✅ Database loaded from:', DB_PATH);
-  } else {
-    db = new SQL.Database();
-    console.log('✅ New database created at:', DB_PATH);
+  // Test the connection
+  try {
+    await pool.query('SELECT NOW()');
+    console.log('✅ Connected to Supabase PostgreSQL database');
+  } catch (err) {
+    console.error('❌ Failed to connect to Supabase PostgreSQL database:', err.message);
+    throw err;
   }
 
-  // Enable foreign keys
-  db.run('PRAGMA foreign_keys = ON;');
-
-  // Create tables
-  db.run(`
+  // Create tables using PostgreSQL syntax
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS profile (
       id INTEGER PRIMARY KEY DEFAULT 1,
       full_name TEXT,
@@ -55,38 +56,38 @@ async function initializeDatabase() {
       location TEXT,
       headline TEXT,
       about TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS education (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       degree TEXT NOT NULL,
       institution TEXT NOT NULL,
       start_year TEXT,
       end_year TEXT,
       cgpa TEXT,
       description TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS skills (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       category TEXT NOT NULL DEFAULT 'technical',
       proficiency TEXT DEFAULT 'intermediate',
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS projects (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
       technologies TEXT,
@@ -95,14 +96,14 @@ async function initializeDatabase() {
       contributions TEXT,
       start_date TEXT,
       end_date TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS experience (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       company TEXT NOT NULL,
       role TEXT NOT NULL,
       start_date TEXT,
@@ -111,46 +112,46 @@ async function initializeDatabase() {
       responsibilities TEXT,
       achievements TEXT,
       location TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS certifications (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       organization TEXT NOT NULL,
       date TEXT,
       credential_url TEXT,
       credential_id TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS achievements (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       description TEXT,
       date TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS links (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       platform TEXT NOT NULL,
       url TEXT NOT NULL,
       label TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS generated_documents (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       type TEXT NOT NULL,
       title TEXT,
       target_role TEXT,
@@ -159,55 +160,52 @@ async function initializeDatabase() {
       template TEXT,
       content TEXT NOT NULL,
       metadata TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
-  // Ensure default profile row exists
-  const result = db.exec('SELECT id FROM profile WHERE id = 1');
-  if (!result.length || !result[0].values.length) {
-    db.run("INSERT INTO profile (id) VALUES (1)");
-    saveDb();
+  // Ensure default profile row exists (id = 1)
+  const result = await pool.query('SELECT id FROM profile WHERE id = 1');
+  if (result.rows.length === 0) {
+    await pool.query("INSERT INTO profile (id) VALUES (1)");
+    console.log('✅ Default profile row created (id=1)');
   }
 
   console.log('✅ Database schema initialized successfully');
 }
 
-// ── Helper functions ─────────────────────────────────────────────────────────
-
-/**
- * Execute a SELECT query and return all rows as objects.
- */
-function queryAll(sql, params = []) {
-  const db = getDb();
-  const stmt = db.prepare(sql);
-  stmt.bind(params);
-  const rows = [];
-  while (stmt.step()) {
-    rows.push(stmt.getAsObject());
+async function getDbPool() {
+  if (!pool) {
+    if (!initPromise) {
+      initPromise = initializeDatabase();
+    }
+    await initPromise;
   }
-  stmt.free();
-  return rows;
+  return pool;
 }
 
-/**
- * Execute a SELECT query and return the first row as object.
- */
-function queryOne(sql, params = []) {
-  const rows = queryAll(sql, params);
+async function queryAll(sql, params = []) {
+  const dbPool = await getDbPool();
+  const { pgSql, pgParams } = convertSqliteToPostgres(sql, params);
+  const result = await dbPool.query(pgSql, pgParams);
+  return result.rows;
+}
+
+async function queryOne(sql, params = []) {
+  const rows = await queryAll(sql, params);
   return rows.length > 0 ? rows[0] : null;
 }
 
-/**
- * Execute an INSERT/UPDATE/DELETE and return lastInsertRowid.
- */
-function execute(sql, params = []) {
-  const db = getDb();
-  db.run(sql, params);
-  const result = db.exec('SELECT last_insert_rowid() as id');
-  const lastId = result[0]?.values[0]?.[0] || null;
-  saveDb();
+async function execute(sql, params = []) {
+  const dbPool = await getDbPool();
+  const { pgSql, pgParams } = convertSqliteToPostgres(sql, params);
+  const result = await dbPool.query(pgSql, pgParams);
+  
+  let lastId = null;
+  if (result.rows && result.rows[0]) {
+    lastId = result.rows[0].id || null;
+  }
   return { lastInsertRowid: lastId };
 }
 
-module.exports = { initializeDatabase, getDb, queryAll, queryOne, execute, saveDb };
+module.exports = { initializeDatabase, getDbPool, queryAll, queryOne, execute };

@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/profileController');
 
-router.get('/', (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    res.json(ctrl.getProfile());
+    res.json(await ctrl.getProfile());
   } catch (e) { next(e); }
 });
 
-router.put('/', (req, res, next) => {
+router.put('/', async (req, res, next) => {
   try {
     const profile = ctrl.updateProfile(req.body);
     res.json(profile);

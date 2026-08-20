@@ -1,17 +1,17 @@
 const { queryAll, queryOne, execute } = require('../database/init');
 
-function getAll() {
-  return queryAll('SELECT * FROM generated_documents ORDER BY created_at DESC').map(parseDoc);
+async function getAll() {
+  return await queryAll('SELECT * FROM generated_documents ORDER BY created_at DESC').map(parseDoc);
 }
 
-function getById(id) {
+async function getById(id) {
   const doc = queryOne('SELECT * FROM generated_documents WHERE id = ?', [id]);
   return doc ? parseDoc(doc) : null;
 }
 
-function create(data) {
+async function create(data) {
   const { type, title, target_role, target_company, job_description, template, content, metadata } = data;
-  const result = execute(
+  const result = await await execute(
     'INSERT INTO generated_documents (type, title, target_role, target_company, job_description, template, content, metadata) VALUES (?,?,?,?,?,?,?,?)',
     [
       type, title || null, target_role || null, target_company || null,
@@ -20,11 +20,11 @@ function create(data) {
       metadata ? JSON.stringify(metadata) : null
     ]
   );
-  return getById(result.lastInsertRowid);
+  return await getById(result.lastInsertRowid);
 }
 
-function remove(id) {
-  execute('DELETE FROM generated_documents WHERE id = ?', [id]);
+async function remove(id) {
+  await execute('DELETE FROM generated_documents WHERE id = ?', [id]);
 }
 
 function parseDoc(doc) {

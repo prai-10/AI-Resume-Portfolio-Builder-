@@ -54,6 +54,18 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'AI Resume Builder API is running', timestamp: new Date().toISOString() });
 });
 
+// Environment debug (safe - does not expose keys)
+app.get('/api/debug-env', (req, res) => {
+  res.json({
+    hasApiKey: !!process.env.AI_API_KEY,
+    apiKeyLength: process.env.AI_API_KEY ? process.env.AI_API_KEY.length : 0,
+    hasDbUrl: !!process.env.DATABASE_URL,
+    dbUrlLength: process.env.DATABASE_URL ? process.env.DATABASE_URL.length : 0,
+    env: process.env.NODE_ENV,
+    isVercel: !!process.env.VERCEL
+  });
+});
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('Server error:', err.message);

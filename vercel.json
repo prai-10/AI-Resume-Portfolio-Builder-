@@ -19,11 +19,12 @@
       "dest": "server/server.js"
     },
     {
-      "handle": "filesystem"
+      "src": "/(assets/.*|favicon.ico|vite.svg|manifest.json)",
+      "dest": "client/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "client/index.html"
     }
   ]
 }

@@ -24,3 +24,7 @@ npm-debug.log*
 
 # --- Vite cache ---
 client/.vite/
+
+# --- Temp env files ---
+env-temp.txt
+env.txt

@@ -85,9 +85,9 @@ function CoverLetter() {
         <p className="page-subtitle">Generate a personalized cover letter for any job application.</p>
       </div>
 
-      {aiMode === 'demo' && (
-        <div className="alert alert-info">
-          🤖 <strong>Demo Mode</strong> — Cover letters are generated from your stored profile. Set <code>AI_API_KEY</code> for AI-powered generation.
+      {aiMode === 'disabled' && (
+        <div className="alert alert-error">
+          🤖 <strong>AI Features Disabled</strong> — Cover letter generation requires <code>AI_API_KEY</code>. Please set it on Vercel to use this feature.
         </div>
       )}
 
@@ -110,7 +110,7 @@ function CoverLetter() {
                 <label className="form-label">Job Description <span style={{ color: 'var(--color-text-muted)', fontWeight: 400, fontSize: 12 }}>(optional)</span></label>
                 <textarea className="form-textarea" rows={4} value={form.jobDescription} onChange={e => setForm({ ...form, jobDescription: e.target.value })} placeholder="Paste job description..." />
               </div>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading || aiMode === 'disabled'}>
                 {loading ? '⏳ Generating…' : '✉️ Generate Cover Letter'}
               </button>
             </form>

@@ -81,7 +81,6 @@ function SavedDocuments() {
                   <div className="list-item-subtitle">
                     <span className="badge badge-primary" style={{ marginRight: 6 }}>{doc.template || 'modern'}</span>
                     {new Date(doc.created_at).toLocaleDateString()}
-                    {doc.metadata?.mode === 'demo' && <span className="badge badge-demo" style={{ marginLeft: 6 }}>Demo</span>}
                   </div>
                 </div>
                 <button className="btn btn-danger btn-sm" onClick={e => { e.stopPropagation(); handleDelete(doc.id); }}>🗑️</button>

@@ -40,9 +40,9 @@ function Dashboard() {
         <p className="page-subtitle">Welcome back{profile.full_name ? `, ${profile.full_name}` : ''}! Here's your resume builder overview.</p>
       </div>
 
-      {aiMode === 'demo' && (
-        <div className="alert alert-warning">
-          🤖 <strong>Demo Mode</strong> — AI generation uses stored data without an external AI call. Add <code>AI_API_KEY</code> in <code>server/.env</code> to enable live AI.
+      {aiMode === 'disabled' && (
+        <div className="alert alert-error">
+          🤖 <strong>AI Features Disabled</strong> — The <code>AI_API_KEY</code> is not configured. Please set it in Vercel settings to enable Live AI generation.
         </div>
       )}
 

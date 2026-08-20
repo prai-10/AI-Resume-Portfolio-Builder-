@@ -51,9 +51,9 @@ function ResumeBuilder() {
         <p className="page-subtitle">Generate a tailored resume using your profile data and AI.</p>
       </div>
 
-      {aiMode === 'demo' && (
-        <div className="alert alert-info">
-          🤖 <strong>Demo Mode</strong> — Generating resume using your stored profile data. No external AI call. Set <code>AI_API_KEY</code> in <code>server/.env</code> for live AI.
+      {aiMode === 'disabled' && (
+        <div className="alert alert-error">
+          🤖 <strong>AI Features Disabled</strong> — Resume generation requires <code>AI_API_KEY</code>. Please set it on Vercel to use this feature.
         </div>
       )}
 
@@ -98,7 +98,7 @@ function ResumeBuilder() {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading || aiMode === 'disabled'}>
               {loading ? '⏳ Generating…' : '🚀 Generate Resume'}
             </button>
           </form>

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generateResume, generateCoverLetter, isDemoMode } = require('../services/aiService');
+const { generateResume, generateCoverLetter } = require('../services/aiService');
 const profileCtrl = require('../controllers/profileController');
 const educationCtrl = require('../controllers/educationController');
 const skillsCtrl = require('../controllers/skillsController');
@@ -37,12 +37,13 @@ async function loadFullProfile() {
 
 // GET /api/ai/status
 router.get('/status', (req, res) => {
+  const hasApiKey = !!process.env.AI_API_KEY;
   res.json({
-    mode: isDemoMode ? 'demo' : 'live',
+    mode: hasApiKey ? 'live' : 'disabled',
     model: process.env.AI_MODEL || 'gpt-3.5-turbo',
-    message: isDemoMode
-      ? 'Demo Mode active — set AI_API_KEY in server/.env to enable live AI'
-      : 'Live AI mode active'
+    message: hasApiKey
+      ? 'Live AI mode active'
+      : 'AI API Key is missing. Please configure AI_API_KEY in Vercel to enable AI features.'
   });
 });
 
@@ -51,6 +52,10 @@ router.post('/generate-resume', async (req, res, next) => {
   try {
     const { targetRole, targetIndustry, jobDescription, template } = req.body;
     if (!targetRole) return res.status(400).json({ error: 'Target role is required' });
+
+    if (!process.env.AI_API_KEY) {
+      return res.status(400).json({ error: 'AI features are disabled. Please configure AI_API_KEY on Vercel.' });
+    }
 
     const profileData = await loadFullProfile();
     const content = await generateResume(profileData, targetRole, targetIndustry, jobDescription);
@@ -66,12 +71,12 @@ router.post('/generate-resume', async (req, res, next) => {
       content,
       metadata: {
         targetIndustry,
-        mode: isDemoMode ? 'demo' : 'live',
+        mode: 'live',
         generatedAt: new Date().toISOString()
       }
     });
 
-    res.json({ document: doc, mode: isDemoMode ? 'demo' : 'live' });
+    res.json({ document: doc, mode: 'live' });
   } catch (e) {
     next(e);
   }
@@ -83,6 +88,10 @@ router.post('/generate-cover-letter', async (req, res, next) => {
     const { targetCompany, jobTitle, jobDescription } = req.body;
     if (!targetCompany || !jobTitle) {
       return res.status(400).json({ error: 'Target company and job title are required' });
+    }
+
+    if (!process.env.AI_API_KEY) {
+      return res.status(400).json({ error: 'AI features are disabled. Please configure AI_API_KEY on Vercel.' });
     }
 
     const profileData = await loadFullProfile();
@@ -97,12 +106,12 @@ router.post('/generate-cover-letter', async (req, res, next) => {
       template: 'standard',
       content,
       metadata: {
-        mode: isDemoMode ? 'demo' : 'live',
+        mode: 'live',
         generatedAt: new Date().toISOString()
       }
     });
 
-    res.json({ document: doc, mode: isDemoMode ? 'demo' : 'live' });
+    res.json({ document: doc, mode: 'live' });
   } catch (e) {
     next(e);
   }

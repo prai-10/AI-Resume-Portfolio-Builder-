@@ -57,27 +57,27 @@ function AIGenerator() {
 
   if (loading) return <div className="loading"><div className="spinner"></div><span className="loading-text">Loading...</span></div>;
 
-  const isDemo = aiStatus?.mode !== 'live';
+  const isDisabled = aiStatus?.mode === 'disabled';
 
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">AI Generator</h1>
-        <p className="page-subtitle">Generate tailored resumes powered by AI or Demo Mode.</p>
+        <p className="page-subtitle">Generate tailored resumes powered by Live AI.</p>
       </div>
 
       {/* Status bar — compact, non-blocking */}
       <div className="alert" style={{
-        background: isDemo ? 'var(--color-warning-bg)' : 'var(--color-success-bg)',
-        color: isDemo ? 'var(--color-warning)' : 'var(--color-success)',
-        border: `1px solid ${isDemo ? 'var(--color-warning)' : 'var(--color-success)'}`,
+        background: isDisabled ? 'var(--color-error-bg)' : 'var(--color-success-bg)',
+        color: isDisabled ? 'var(--color-error)' : 'var(--color-success)',
+        border: `1px solid ${isDisabled ? 'var(--color-error)' : 'var(--color-success)'}`,
         marginBottom: 20
       }}>
-        {isDemo ? '🟡' : '🟢'}
+        {isDisabled ? '🔴' : '🟢'}
         <span>
-          <strong>{isDemo ? 'Demo Mode' : 'Live AI'}</strong>
-          {isDemo
-            ? ' — AI API key not configured. Generating resume from your stored profile data.'
+          <strong>{isDisabled ? 'AI Disabled' : 'Live AI'}</strong>
+          {isDisabled
+            ? ' — AI API key not configured. Please set AI_API_KEY in Vercel to enable AI features.'
             : ` — Using model: ${aiStatus?.model}`}
         </span>
       </div>
@@ -149,13 +149,11 @@ function AIGenerator() {
                 type="submit"
                 className="btn btn-primary"
                 style={{ width: '100%' }}
-                disabled={generating}
+                disabled={generating || isDisabled}
               >
                 {generating
                   ? '⏳ Generating…'
-                  : isDemo
-                    ? '🤖 Generate Resume (Demo Mode)'
-                    : '🤖 Generate Resume (Live AI)'}
+                  : '🤖 Generate Resume (Live AI)'}
               </button>
             </form>
           </div>

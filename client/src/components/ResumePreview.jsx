@@ -80,7 +80,6 @@ function ResumePreview({ document: doc, defaultTemplate = 'modern' }) {
             <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 2 }}>
               {doc.target_role && `${doc.target_role} • `}
               {new Date(doc.created_at).toLocaleDateString()}
-              {doc.content?._mode === 'demo' && <span className="badge badge-demo" style={{ marginLeft: 8 }}>Demo Mode</span>}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>

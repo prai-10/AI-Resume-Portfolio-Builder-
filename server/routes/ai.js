@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generateResume, generateCoverLetter } = require('../services/aiService');
+const { generateResume, generateCoverLetter, AI_MODEL } = require('../services/aiService');
 const profileCtrl = require('../controllers/profileController');
 const educationCtrl = require('../controllers/educationController');
 const skillsCtrl = require('../controllers/skillsController');
@@ -40,7 +40,7 @@ router.get('/status', (req, res) => {
   const hasApiKey = !!process.env.AI_API_KEY;
   res.json({
     mode: hasApiKey ? 'live' : 'disabled',
-    model: process.env.AI_MODEL || 'gpt-3.5-turbo',
+    model: AI_MODEL,
     message: hasApiKey
       ? 'Live AI mode active'
       : 'AI API Key is missing. Please configure AI_API_KEY in Vercel to enable AI features.'

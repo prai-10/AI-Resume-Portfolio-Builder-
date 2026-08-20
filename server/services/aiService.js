@@ -6,7 +6,14 @@ const fetch = require('node-fetch');
 
 // Read once at startup — env vars are stable for the lifetime of the process.
 const AI_API_KEY  = (process.env.AI_API_KEY  || '').trim();
-const AI_MODEL    = (process.env.AI_MODEL    || 'gpt-3.5-turbo').trim();
+
+let rawModel = (process.env.AI_MODEL || 'gpt-3.5-turbo').trim();
+// Automatically clean model names (e.g. "gemini 1.5 flash" -> "gemini-1.5-flash")
+if (rawModel.toLowerCase().includes('gemini')) {
+  rawModel = rawModel.toLowerCase().replace(/\s+/g, '-');
+}
+const AI_MODEL = rawModel;
+
 let cleanBaseUrl = (process.env.AI_BASE_URL || 'https://api.openai.com/v1').trim();
 if (cleanBaseUrl.endsWith('/')) {
   cleanBaseUrl = cleanBaseUrl.slice(0, -1);
@@ -156,4 +163,4 @@ Return JSON:
   return JSON.parse(jsonMatch[1].trim());
 }
 
-module.exports = { generateResume, generateCoverLetter };
+module.exports = { generateResume, generateCoverLetter, AI_MODEL };

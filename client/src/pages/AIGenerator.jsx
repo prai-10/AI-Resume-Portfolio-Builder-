@@ -82,7 +82,7 @@ function AIGenerator() {
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selectedDoc ? '360px 1fr' : '420px 1fr', gap: 24, alignItems: 'start' }}>
+      <div className={`page-layout-grid ${selectedDoc ? '' : 'wide-left'}`}>
 
         {/* Left column: form + saved list */}
         <div>

@@ -91,7 +91,7 @@ function CoverLetter() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 24, alignItems: 'start' }}>
+      <div className="page-layout-grid">
         {/* Generator form */}
         <div>
           <div className="card">

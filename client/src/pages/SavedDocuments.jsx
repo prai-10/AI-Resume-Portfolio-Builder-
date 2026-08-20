@@ -57,7 +57,7 @@ function SavedDocuments() {
 
       {error && <div className="alert alert-error">❌ {error}</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: selectedDoc ? '340px 1fr' : '1fr', gap: 24, alignItems: 'start' }}>
+      <div className={`page-layout-grid ${selectedDoc ? '' : 'single-column'}`}>
         {/* List panel */}
         <div>
           {/* Resumes */}

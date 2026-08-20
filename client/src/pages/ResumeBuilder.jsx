@@ -57,7 +57,7 @@ function ResumeBuilder() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: generatedDoc ? '380px 1fr' : '1fr', gap: 24, alignItems: 'start' }}>
+      <div className={`page-layout-grid ${generatedDoc ? 'medium-left' : 'single-column'}`}>
         {/* Form panel */}
         <div className="card">
           <h2 className="card-title">Generation Settings</h2>
